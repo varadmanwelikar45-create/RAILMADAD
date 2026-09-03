@@ -1,0 +1,6 @@
+{
+  "name": "Rail Madad AI",
+  "description": "Report railway problems via text, image, voice, or 139 AI call with automated AI department routing and real-time status tracking.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

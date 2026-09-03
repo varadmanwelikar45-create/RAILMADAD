@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #F8F9FA;
+    margin: 0;
+    font-family: 'Helvetica Neue', Arial, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #002147;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Clean Minimalism Utility Classes */
+.navy-bg {
+  background-color: #002147;
+}
+
+.navy-text {
+  color: #002147;
+}
+
+.off-white {
+  background-color: #F8F9FA;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 33, 71, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 6px 16px rgba(0, 33, 71, 0.08);
+}
+
+.btn-rounded {
+  border-radius: 99px;
+  padding: 12px 24px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-submitted {
+  background: #CBD5E0;
+}
+
+.status-assigned {
+  background: #4299E1;
+}
+
+.status-progress {
+  background: #F6AD55;
+}
+
+.status-resolved {
+  background: #48BB78;
+}
+
+.tracker-line {
+  width: 2px;
+  background: #E2E8F0;
+  flex-grow: 1;
+}
