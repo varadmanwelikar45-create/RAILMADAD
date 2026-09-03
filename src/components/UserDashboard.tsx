@@ -11,7 +11,6 @@ interface Props {
   onOpenVoiceComplaint: () => void;
   onOpenCall139: () => void;
   onTrackComplaint: (complaint: Complaint) => void;
-  onSwitchToOfficer: () => void;
   onLogout: () => void;
 }
 
@@ -23,13 +22,25 @@ export const UserDashboard: React.FC<Props> = ({
   onOpenVoiceComplaint,
   onOpenCall139,
   onTrackComplaint,
-  onSwitchToOfficer,
   onLogout,
 }) => {
-  // Filter complaints for current user or default demo
-  const userComplaints = complaints.filter(
-    (c) => c.userId === user.email || c.userId === "user_default" || c.userName === user.name
-  );
+  // Only show complaints belonging to this passenger account
+  const userComplaints = complaints.filter((c) => {
+    // If logged in as the demo passenger Rahul Sharma, include pre-seeded demo complaints
+    if (user.email === "rahul.sharma@example.com") {
+      return (
+        c.userId === "rahul.sharma@example.com" ||
+        c.userId === "user_default" ||
+        c.userName === "Rahul Sharma"
+      );
+    }
+    // For registered passenger, strictly match their email, mobile, or assigned identifier
+    return (
+      c.userId === user.email ||
+      (user.mobile && c.userPhone === user.mobile) ||
+      (c.userName && c.userName.toLowerCase() === user.name.toLowerCase() && c.userId !== "user_default")
+    );
+  });
 
   // Compute user initials for avatar
   const initials = user.name
@@ -41,8 +52,6 @@ export const UserDashboard: React.FC<Props> = ({
         .toUpperCase()
     : "PS";
 
-  const latestPnr = userComplaints.find((c) => c.pnr)?.pnr || "4235-XXXX-12";
-
   return (
     <div className="min-h-screen off-white navy-text flex flex-col">
       {/* Top Nav Bar (Clean Minimalism Navy Header) */}
@@ -51,7 +60,7 @@ export const UserDashboard: React.FC<Props> = ({
           <span className="text-3xl">🚆</span>
           <div>
             <h1 className="text-xl font-bold tracking-tight">RAIL MADAD AI</h1>
-            <p className="text-xs opacity-70">Government of India • Ministry of Railways</p>
+            <p className="text-xs opacity-70">Government of India • Ministry of Railways • Passenger Portal</p>
           </div>
         </div>
 
@@ -59,7 +68,9 @@ export const UserDashboard: React.FC<Props> = ({
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="text-right hidden sm:block mr-2">
             <p className="text-sm font-semibold leading-tight">{user.name}</p>
-            <p className="text-xs opacity-60">PNR: {latestPnr}</p>
+            <p className="text-xs opacity-60">
+              {user.mobile ? `+91 ${user.mobile}` : user.email}
+            </p>
           </div>
 
           <div
@@ -68,16 +79,6 @@ export const UserDashboard: React.FC<Props> = ({
           >
             {initials}
           </div>
-
-          <button
-            id="switch-to-officer-btn"
-            onClick={onSwitchToOfficer}
-            title="Switch to Officer View"
-            className="text-xs px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
-          >
-            <Shield className="w-3.5 h-3.5 text-amber-300" />
-            <span className="hidden md:inline">Officer View</span>
-          </button>
 
           <button
             id="user-logout-btn"
@@ -325,14 +326,25 @@ export const UserDashboard: React.FC<Props> = ({
               )}
             </div>
 
-            {/* Bottom Button (Matching Design HTML: SWITCH TO OFFICER VIEW 👮) */}
-            <button
-              id="user-switch-officer-bottom-btn"
-              onClick={onSwitchToOfficer}
-              className="mt-6 btn-rounded navy-bg hover:opacity-90 text-white w-full text-sm font-bold shadow-md cursor-pointer transition-all"
-            >
-              SWITCH TO OFFICER VIEW 👮
-            </button>
+            {/* Passenger Assistance Helpline Card */}
+            <div className="mt-6 p-4 rounded-2xl bg-blue-50/70 border border-blue-100 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full navy-bg text-white flex items-center justify-center text-lg shrink-0">
+                  🛡️
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#002147]">24×7 Passenger Emergency</p>
+                  <p className="text-[11px] text-slate-500">Security & Medical Railway Helpline: 139</p>
+                </div>
+              </div>
+              <button
+                id="passenger-call-139-action"
+                onClick={onOpenCall139}
+                className="btn-rounded navy-bg hover:opacity-90 text-white text-xs font-bold py-2 px-4 shrink-0 transition-all cursor-pointer"
+              >
+                Call 139
+              </button>
+            </div>
           </div>
         </div>
       </main>

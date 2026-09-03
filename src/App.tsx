@@ -95,28 +95,6 @@ export default function App() {
     showToast("Logged out successfully.");
   };
 
-  const handleSwitchRole = (newRole: "passenger" | "officer") => {
-    if (newRole === "passenger") {
-      setCurrentUser({
-        name: "Rahul Sharma",
-        email: "rahul.sharma@example.com",
-        mobile: "9876543210",
-        role: "passenger",
-      });
-      showToast("Switched to Passenger View");
-    } else {
-      setCurrentUser({
-        name: "Officer EMP-4091",
-        email: "emp4091@railways.gov.in",
-        mobile: "011-2338-1234",
-        role: "officer",
-        employeeId: "EMP-4091",
-        assignedDepartment: "Electricity",
-      });
-      showToast("Switched to Officer Portal");
-    }
-  };
-
   // Complaint Submission Handler
   const handleNewComplaint = (data: {
     complaint: string;
@@ -129,7 +107,7 @@ export default function App() {
     pnr?: string;
   }) => {
     const created = addComplaint({
-      userId: currentUser?.email || "user_default",
+      userId: currentUser?.email || "passenger_user",
       userName: currentUser?.name || "Passenger",
       userPhone: currentUser?.mobile,
       complaint: data.complaint,
@@ -217,7 +195,6 @@ export default function App() {
           onOpenVoiceComplaint={() => setIsVoiceModalOpen(true)}
           onOpenCall139={() => setIsCall139Open(true)}
           onTrackComplaint={(comp) => setTrackingComplaint(comp)}
-          onSwitchToOfficer={() => handleSwitchRole("officer")}
           onLogout={handleLogout}
         />
       ) : (
@@ -225,7 +202,6 @@ export default function App() {
           officer={currentUser}
           complaints={complaints}
           onUpdateStatus={handleUpdateComplaintStatus}
-          onSwitchToPassenger={() => handleSwitchRole("passenger")}
           onLogout={handleLogout}
         />
       )}

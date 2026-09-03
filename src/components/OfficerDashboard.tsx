@@ -7,7 +7,6 @@ interface Props {
   officer: UserProfile;
   complaints: Complaint[];
   onUpdateStatus: (id: string, newStatus: "Assigned" | "In Progress" | "Resolved", note?: string) => void;
-  onSwitchToPassenger: () => void;
   onLogout: () => void;
 }
 
@@ -15,7 +14,6 @@ export const OfficerDashboard: React.FC<Props> = ({
   officer,
   complaints,
   onUpdateStatus,
-  onSwitchToPassenger,
   onLogout,
 }) => {
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<DepartmentType | "All">(
@@ -56,15 +54,10 @@ export const OfficerDashboard: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              id="officer-switch-to-passenger-btn"
-              onClick={onSwitchToPassenger}
-              title="Switch to Passenger View to test real-time updates"
-              className="text-xs px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center gap-1.5 font-medium cursor-pointer"
-            >
-              <User className="w-3.5 h-3.5 text-blue-300" />
-              <span className="hidden sm:inline">Passenger View</span>
-            </button>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-white/90">
+              <Shield className="w-3.5 h-3.5 text-amber-300" />
+              <span>{officer.name}</span>
+            </div>
             <button
               id="officer-logout-btn"
               onClick={onLogout}

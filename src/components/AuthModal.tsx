@@ -20,15 +20,29 @@ export const AuthModal: React.FC<Props> = ({
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
 
   // User fields
-  const [name, setName] = useState("Rahul Sharma");
-  const [email, setEmail] = useState("rahul.sharma@example.com");
-  const [mobile, setMobile] = useState("9876543210");
-  const [userPassword, setUserPassword] = useState("railmadad123");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [userPassword, setUserPassword] = useState("");
 
   // Officer fields
-  const [employeeId, setEmployeeId] = useState("EMP-4091");
-  const [officerPassword, setOfficerPassword] = useState("officer2026");
+  const [employeeId, setEmployeeId] = useState("");
+  const [officerPassword, setOfficerPassword] = useState("");
   const [assignedDept, setAssignedDept] = useState<DepartmentType | "All">("Electricity");
+
+  // Fill demo shortcut
+  const handleFillDemo = () => {
+    if (role === "passenger") {
+      setName("Rahul Sharma");
+      setEmail("rahul.sharma@example.com");
+      setMobile("9876543210");
+      setUserPassword("railmadad123");
+    } else {
+      setEmployeeId("EMP-4091");
+      setOfficerPassword("officer2026");
+      setAssignedDept("Electricity");
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
