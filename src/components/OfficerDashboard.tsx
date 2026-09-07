@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Shield, CheckCircle, Clock, Check, User, ArrowLeft, LogOut, Filter, Sparkles, MessageSquare, AlertTriangle } from "lucide-react";
+import { Shield, CheckCircle, Clock, Check, User, ArrowLeft, LogOut, Filter, Sparkles, MessageSquare, AlertTriangle, Search, Zap } from "lucide-react";
 import { Complaint, ComplaintStatus, DepartmentType, UserProfile } from "../types";
 import { DEPARTMENTS, getUrgencyBadge, getStatusBadge } from "../departmentUtils";
+import { AppLogo } from "./AppLogo";
 
 interface Props {
   officer: UserProfile;
@@ -16,17 +17,36 @@ export const OfficerDashboard: React.FC<Props> = ({
   onUpdateStatus,
   onLogout,
 }) => {
-  const [selectedDeptFilter, setSelectedDeptFilter] = useState<DepartmentType | "All">(
-    officer.assignedDepartment || "All"
-  );
+  // Always default to "All" so all incoming complaints from passengers are immediately visible
+  const [selectedDeptFilter, setSelectedDeptFilter] = useState<DepartmentType | "All">("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | ComplaintStatus>("All");
 
-  // Filter complaints
-  const filteredComplaints = complaints.filter((c) => {
-    if (selectedDeptFilter === "All") return true;
-    return c.department === selectedDeptFilter;
+  // Sort complaints newest first
+  const sortedComplaints = [...complaints].sort((a, b) => {
+    const timeA = new Date(a.createdAt).getTime() || 0;
+    const timeB = new Date(b.createdAt).getTime() || 0;
+    return timeB - timeA;
   });
 
-  // Calculate stats (matching PRD Section 10)
+  // Filter complaints by department, status, and search query
+  const filteredComplaints = sortedComplaints.filter((c) => {
+    if (selectedDeptFilter !== "All" && c.department !== selectedDeptFilter) return false;
+    if (statusFilter !== "All" && c.status !== statusFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchText = (c.complaint || "").toLowerCase();
+      const matchId = (c.id || "").toLowerCase();
+      const matchCoach = (c.coach || "").toLowerCase();
+      const matchUser = (c.userName || "").toLowerCase();
+      const matchPnr = (c.pnr || "").toLowerCase();
+      const matchDept = (c.department || "").toLowerCase();
+      return matchText.includes(q) || matchId.includes(q) || matchCoach.includes(q) || matchUser.includes(q) || matchPnr.includes(q) || matchDept.includes(q);
+    }
+    return true;
+  });
+
+  // Calculate stats
   const newCount = complaints.filter(
     (c) => c.status === "Submitted" || c.status === "Assigned"
   ).length;
@@ -34,34 +54,27 @@ export const OfficerDashboard: React.FC<Props> = ({
   const resolvedCount = complaints.filter((c) => c.status === "Resolved").length;
 
   return (
-    <div className="min-h-screen off-white navy-text flex flex-col">
-      {/* Officer Header (Clean Minimalism Navy Header) */}
-      <header className="navy-bg text-white px-4 sm:px-8 py-4 sm:py-5 flex justify-between items-center shadow-sm sticky top-0 z-30">
+    <div className="min-h-screen bg-[#F4F7FB] text-[#0B192C] flex flex-col">
+      {/* Officer Header with AppLogo and Refined Colors */}
+      <header className="bg-[#0A192F] text-white px-4 sm:px-8 py-3.5 sm:py-4 flex justify-between items-center shadow-md sticky top-0 z-30 border-b border-slate-800">
         <div className="max-w-6xl w-full mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">🚆</span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">RAIL MADAD AI</h1>
-                <span className="bg-amber-400 text-[#002147] font-bold text-[10px] px-2 py-0.5 rounded-full tracking-wide">
-                  OFFICER PORTAL
-                </span>
-              </div>
-              <p className="text-xs opacity-70">
-                Department: <strong>{officer.assignedDepartment || "All Wings"}</strong> • ID: {officer.employeeId || "STAFF-902"}
-              </p>
-            </div>
-          </div>
+          <AppLogo
+            size="md"
+            showText={true}
+            textLight={true}
+            subtext={`Wing: ${officer.assignedDepartment || "All Wings"} • ID: ${officer.employeeId || "STAFF-902"}`}
+            badgeText="OFFICER PORTAL"
+          />
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-white/90">
-              <Shield className="w-3.5 h-3.5 text-amber-300" />
+            <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-white/10 rounded-full text-xs font-semibold text-white border border-white/15">
+              <Shield className="w-3.5 h-3.5 text-amber-400" />
               <span>{officer.name}</span>
             </div>
             <button
               id="officer-logout-btn"
               onClick={onLogout}
-              className="p-2 text-white/70 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-2 text-slate-300 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -105,6 +118,37 @@ export const OfficerDashboard: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Search Bar & Status Filter */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by Complaint #, Coach (B2), PNR, Passenger, or keywords..."
+              className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#002147] focus:bg-white transition-all"
+            />
+          </div>
+
+          <div className="flex items-center gap-1 overflow-x-auto shrink-0 scrollbar-none">
+            <span className="text-[11px] font-bold text-slate-400 mr-1 hidden md:inline">Status:</span>
+            {(["All", "Submitted", "Assigned", "In Progress", "Resolved"] as const).map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  statusFilter === st
+                    ? "navy-bg text-white"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Department Filter Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
@@ -116,7 +160,7 @@ export const OfficerDashboard: React.FC<Props> = ({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            All ({complaints.length})
+            All Wings ({complaints.length})
           </button>
           {Object.values(DEPARTMENTS).map((dept) => {
             const count = complaints.filter((c) => c.department === dept.name).length;
@@ -145,27 +189,36 @@ export const OfficerDashboard: React.FC<Props> = ({
           {filteredComplaints.length === 0 ? (
             <div className="card p-12 text-center border border-slate-100">
               <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3 opacity-90" />
-              <p className="text-lg font-bold text-[#002147]">No complaints in this department</p>
-              <p className="text-sm text-slate-400 mt-1">All issues have been attended or auto-routed elsewhere.</p>
+              <p className="text-lg font-bold text-[#002147]">No complaints found</p>
+              <p className="text-sm text-slate-400 mt-1">
+                {searchQuery ? `No results matching "${searchQuery}".` : "All complaints in this filter have been processed."}
+              </p>
             </div>
           ) : (
             filteredComplaints.map((complaint) => {
               const dept = DEPARTMENTS[complaint.department] || DEPARTMENTS.Other;
               const urgency = getUrgencyBadge(complaint.urgency);
               const statusBadge = getStatusBadge(complaint.status);
+              const isRecent = (Date.now() - new Date(complaint.createdAt).getTime()) < 3600000;
 
               return (
                 <div
                   key={complaint.id}
                   id={`officer-complaint-${complaint.id}`}
-                  className="card p-6 border border-slate-100 space-y-4"
+                  className="card p-6 border border-slate-100 space-y-4 transition-all hover:shadow-md"
                 >
                   {/* Top Bar of Complaint */}
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <span className="text-base font-extrabold text-[#002147]">
                         Complaint #{complaint.id}
                       </span>
+
+                      {isRecent && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-xs">
+                          <Zap className="w-3 h-3 fill-white" /> NEW
+                        </span>
+                      )}
 
                       <span className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-semibold border ${dept.badgeColor}`}>
                         <span className="mr-1">{dept.emoji}</span>

@@ -43,10 +43,25 @@ export default function App() {
   // Success Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync state if another tab or event modifies it
+  // Sync user and keep complaints state fresh
   useEffect(() => {
     saveCurrentUser(currentUser);
+    // Refresh complaints from storage whenever user logs in, out, or switches accounts
+    setComplaints(getStoredComplaints());
   }, [currentUser]);
+
+  // Listen to window focus and storage events to ensure cross-tab sync
+  useEffect(() => {
+    const handleSync = () => {
+      setComplaints(getStoredComplaints());
+    };
+    window.addEventListener("storage", handleSync);
+    window.addEventListener("focus", handleSync);
+    return () => {
+      window.removeEventListener("storage", handleSync);
+      window.removeEventListener("focus", handleSync);
+    };
+  }, []);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -64,30 +79,6 @@ export default function App() {
     setCurrentUser(user);
     setAuthModal((prev) => ({ ...prev, isOpen: false }));
     showToast(`Welcome ${user.name}! Logged in successfully.`);
-  };
-
-  const handleQuickDemoLogin = (role: "passenger" | "officer") => {
-    if (role === "passenger") {
-      const demoUser: UserProfile = {
-        name: "Rahul Sharma",
-        email: "rahul.sharma@example.com",
-        mobile: "9876543210",
-        role: "passenger",
-      };
-      setCurrentUser(demoUser);
-      showToast("Logged in as Passenger (Rahul Sharma)");
-    } else {
-      const demoOfficer: UserProfile = {
-        name: "Officer EMP-4091",
-        email: "emp4091@railways.gov.in",
-        mobile: "011-2338-1234",
-        role: "officer",
-        employeeId: "EMP-4091",
-        assignedDepartment: "Electricity",
-      };
-      setCurrentUser(demoOfficer);
-      showToast("Logged in as Railway Officer (EMP-4091)");
-    }
   };
 
   const handleLogout = () => {
@@ -182,10 +173,7 @@ export default function App() {
 
       {/* Main View Switcher */}
       {!currentUser ? (
-        <LandingPage
-          onOpenAuth={handleOpenAuth}
-          onQuickDemoLogin={handleQuickDemoLogin}
-        />
+        <LandingPage onOpenAuth={handleOpenAuth} />
       ) : currentUser.role === "passenger" ? (
         <UserDashboard
           user={currentUser}

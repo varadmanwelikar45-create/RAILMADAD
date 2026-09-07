@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { User, Shield, Mail, Lock, Phone, UserCheck, X, ArrowRight, CheckCircle2 } from "lucide-react";
 import { UserProfile, DepartmentType } from "../types";
 import { DEPARTMENTS } from "../departmentUtils";
+import { AppLogo } from "./AppLogo";
 
 interface Props {
   initialRole: "passenger" | "officer";
@@ -71,37 +72,34 @@ export const AuthModal: React.FC<Props> = ({
   return (
     <div
       id="auth-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="navy-bg text-white px-6 py-5">
+        <div className="bg-[#0A192F] text-white px-6 py-5 border-b border-slate-800">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <span className="text-2xl">🚆</span>
-              <span className="font-bold text-sm tracking-wide">RAIL MADAD AI</span>
-            </div>
+            <AppLogo size="sm" showText={true} textLight={true} badgeText="SECURE LOGIN" />
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer"
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Role selector tabs */}
-          <div className="grid grid-cols-2 gap-2 bg-slate-900/40 p-1 rounded-full">
+          <div className="grid grid-cols-2 gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-white/10">
             <button
               type="button"
               id="auth-tab-passenger"
               onClick={() => setRole("passenger")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 role === "passenger"
-                  ? "bg-white text-[#002147] shadow-xs"
-                  : "text-white/70 hover:text-white"
+                  ? "bg-white text-[#0A192F] shadow-sm"
+                  : "text-slate-300 hover:text-white"
               }`}
             >
               <User className="w-3.5 h-3.5" />
@@ -111,10 +109,10 @@ export const AuthModal: React.FC<Props> = ({
               type="button"
               id="auth-tab-officer"
               onClick={() => setRole("officer")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 role === "officer"
-                  ? "bg-white text-[#002147] shadow-xs"
-                  : "text-white/70 hover:text-white"
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm font-extrabold"
+                  : "text-slate-300 hover:text-white"
               }`}
             >
               <Shield className="w-3.5 h-3.5" />
@@ -299,26 +297,6 @@ export const AuthModal: React.FC<Props> = ({
             </span>
             <ArrowRight className="w-4 h-4" />
           </button>
-
-          {/* Quick Demo Pre-fill */}
-          <div className="pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => {
-                if (role === "passenger") {
-                  setName("Rahul Sharma");
-                  setEmail("rahul.sharma@example.com");
-                  setMobile("9876543210");
-                } else {
-                  setEmployeeId("EMP-4091");
-                  setAssignedDept("Electricity");
-                }
-              }}
-              className="text-[11px] text-slate-400 hover:text-slate-600 block text-center w-full"
-            >
-              Reset to demo credentials
-            </button>
-          </div>
         </form>
       </div>
     </div>

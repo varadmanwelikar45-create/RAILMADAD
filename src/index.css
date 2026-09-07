@@ -2,42 +2,47 @@
 
 @layer base {
   body {
-    background-color: #F8F9FA;
+    background-color: #F4F7FB;
     margin: 0;
-    font-family: 'Helvetica Neue', Arial, -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #002147;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #0B192C;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Clean Minimalism Utility Classes */
+/* Indian Railways Modern Identity Color Utilities */
 .navy-bg {
-  background-color: #002147;
+  background-color: #0A192F;
+}
+
+.navy-gradient {
+  background: linear-gradient(135deg, #0A192F 0%, #1E3E62 100%);
 }
 
 .navy-text {
-  color: #002147;
+  color: #0A192F;
 }
 
 .off-white {
-  background-color: #F8F9FA;
+  background-color: #F4F7FB;
 }
 
 .card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 33, 71, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 16px -2px rgba(10, 25, 47, 0.05);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 6px 16px rgba(0, 33, 71, 0.08);
+  box-shadow: 0 8px 24px -4px rgba(10, 25, 47, 0.09);
 }
 
 .btn-rounded {
   border-radius: 99px;
   padding: 12px 24px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -57,15 +62,15 @@
 }
 
 .status-assigned {
-  background: #4299E1;
+  background: #3B82F6;
 }
 
 .status-progress {
-  background: #F6AD55;
+  background: #F59E0B;
 }
 
 .status-resolved {
-  background: #48BB78;
+  background: #10B981;
 }
 
 .tracker-line {

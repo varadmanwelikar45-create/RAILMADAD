@@ -36,6 +36,35 @@ const SAMPLE_VOICE_SCRIPTS = [
   },
 ];
 
+// Helper to remove any duplicate repeated words or phrases emitted by Web Speech API
+export function cleanDuplicateWordsAndPhrases(input: string): string {
+  if (!input) return "";
+
+  // Split into tokens
+  const words = input.trim().split(/\s+/);
+  const deduped: string[] = [];
+
+  for (let i = 0; i < words.length; i++) {
+    const current = words[i];
+    const prev = deduped[deduped.length - 1];
+    // Strip punctuation for comparison
+    const curNorm = current.toLowerCase().replace(/[.,!?;:]/g, "");
+    const prevNorm = prev ? prev.toLowerCase().replace(/[.,!?;:]/g, "") : "";
+
+    // Avoid immediate word duplication (e.g. "fan fan", "water water", "not not")
+    if (!prev || curNorm !== prevNorm) {
+      deduped.push(current);
+    }
+  }
+
+  let text = deduped.join(" ");
+
+  // Deduplicate repeated consecutive multi-word phrases (e.g. "not working not working" -> "not working")
+  text = text.replace(/\b(\w+(?:\s+\w+){1,3})\s+\1\b/gi, "$1");
+
+  return text.trim();
+}
+
 export const VoiceComplaintModal: React.FC<Props> = ({ onClose, onSubmit }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -54,15 +83,30 @@ export const VoiceComplaintModal: React.FC<Props> = ({ onClose, onSubmit }) => {
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
-      recognition.interimResults = true;
+      // Set interimResults to false to stop Chrome from duplicating partial syllable guesses
+      recognition.interimResults = false;
       recognition.lang = "en-IN"; // English (India) or Hindi
 
       recognition.onresult = (event: any) => {
-        let currentText = "";
+        let accumulated = "";
         for (let i = 0; i < event.results.length; i++) {
-          currentText += event.results[i][0].transcript + " ";
+          const res = event.results[i];
+          if (res && res[0]?.transcript) {
+            accumulated += res[0].transcript + " ";
+          }
         }
-        setTranscript(currentText.trim());
+        const cleaned = cleanDuplicateWordsAndPhrases(accumulated);
+        setTranscript(cleaned);
+
+        // Auto-extract coach or berth if mentioned in speech
+        const coachMatch = cleaned.match(/\bcoach\s*([a-z0-9]+)\b/i) || cleaned.match(/\b([abcehs]\d{1,2})\b/i);
+        if (coachMatch?.[1]) {
+          setCoach(coachMatch[1].toUpperCase());
+        }
+        const berthMatch = cleaned.match(/\b(?:berth|seat)\s*(\d{1,3})\b/i);
+        if (berthMatch?.[1]) {
+          setBerth(berthMatch[1]);
+        }
       };
 
       recognition.onerror = (err: any) => {
@@ -71,6 +115,7 @@ export const VoiceComplaintModal: React.FC<Props> = ({ onClose, onSubmit }) => {
 
       recognition.onend = () => {
         setIsRecording(false);
+        setTranscript((prev) => cleanDuplicateWordsAndPhrases(prev));
       };
 
       recognitionRef.current = recognition;
@@ -112,6 +157,7 @@ export const VoiceComplaintModal: React.FC<Props> = ({ onClose, onSubmit }) => {
         } catch {}
       }
       setIsRecording(false);
+      setTranscript((prev) => cleanDuplicateWordsAndPhrases(prev));
     } else {
       setTranscript("");
       setAnalysis(null);

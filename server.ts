@@ -18,6 +18,39 @@ function getGeminiClient(): GoogleGenAI | null {
   return aiClient;
 }
 
+// Helper to try Gemini models with automatic fallback on 503/429/timeout
+async function generateWithGeminiFallback(
+  ai: GoogleGenAI,
+  contents: any[],
+  config: any,
+  models: string[] = ["gemini-3.8-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+): Promise<{ text: string; modelUsed: string } | null> {
+  for (const model of models) {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 4500)
+      );
+
+      const response: any = await Promise.race([
+        ai.models.generateContent({
+          model,
+          contents,
+          config,
+        }),
+        timeoutPromise,
+      ]);
+
+      if (response && response.text) {
+        return { text: response.text, modelUsed: model };
+      }
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      console.warn(`[Gemini] Model ${model} temporarily unavailable: ${errMsg.slice(0, 100)}. Trying fallback...`);
+    }
+  }
+  return null;
+}
+
 // Fallback rule-based classifier when API key is unavailable or during network anomalies
 function fallbackAnalyze(text: string) {
   const t = text || "";
@@ -162,24 +195,22 @@ Return strictly JSON with keys: "complaint", "department", "urgency", "reasoning
 
       contents.push({ text: promptText });
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("AI generation timed out")), 4500)
-      );
+      const geminiResult = await generateWithGeminiFallback(ai, contents, {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      });
 
-      const response: any = await Promise.race([
-        ai.models.generateContent({
-          model: "gemini-3.8-flash",
-          contents,
-          config: {
-            responseMimeType: "application/json",
-            temperature: 0.1,
-          },
-        }),
-        timeoutPromise,
-      ]);
+      if (!geminiResult) {
+        // All models experiencing temporary high demand or limit reached; use intelligent fallback
+        const fallbackResult = fallbackAnalyze(text || "Photo complaint analysis");
+        res.json({
+          ...fallbackResult,
+          source: "rule-engine-fallback",
+        });
+        return;
+      }
 
-      const raw = response.text || "{}";
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(geminiResult.text || "{}");
 
       // Validate department
       const validDepts = [
@@ -199,10 +230,9 @@ Return strictly JSON with keys: "complaint", "department", "urgency", "reasoning
         department,
         urgency,
         reasoning: parsed.reasoning || "Categorized by Rail Madad AI engine",
-        source: "gemini-3.8-flash",
+        source: geminiResult.modelUsed,
       });
-    } catch (err: any) {
-      console.error("Gemini AI error:", err);
+    } catch {
       // Seamlessly fallback so user experience never breaks
       const fallbackResult = fallbackAnalyze(text || "Photo complaint analysis");
       res.json({
@@ -263,23 +293,22 @@ Output valid JSON with:
         },
       ];
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("AI assistant timed out")), 4500)
-      );
+      const geminiResult = await generateWithGeminiFallback(ai, contents, {
+        responseMimeType: "application/json",
+        temperature: 0.2,
+      });
 
-      const response: any = await Promise.race([
-        ai.models.generateContent({
-          model: "gemini-3.8-flash",
-          contents,
-          config: {
-            responseMimeType: "application/json",
-            temperature: 0.2,
-          },
-        }),
-        timeoutPromise,
-      ]);
+      if (!geminiResult) {
+        const analysis = fallbackAnalyze(userMessage);
+        res.json({
+          reply: `Rail Madad 139 received your report: "${analysis.complaint}". Routing directly to ${analysis.department} department (${analysis.urgency} priority).`,
+          detectedComplaint: analysis,
+          shouldRegister: true,
+        });
+        return;
+      }
 
-      const parsed = JSON.parse(response.text || "{}");
+      const parsed = JSON.parse(geminiResult.text || "{}");
       res.json({
         reply: parsed.reply || "Thank you for contacting 139 Rail Madad. We are logging your complaint and dispatching our team.",
         detectedComplaint: parsed.isComplaintIdentified
@@ -291,8 +320,7 @@ Output valid JSON with:
           : null,
         shouldRegister: Boolean(parsed.isComplaintIdentified),
       });
-    } catch (err: any) {
-      console.error("139 assistant error:", err);
+    } catch {
       const analysis = fallbackAnalyze(userMessage);
       res.json({
         reply: `Rail Madad 139 received your report: "${analysis.complaint}". Routing directly to ${analysis.department} department (${analysis.urgency} priority).`,

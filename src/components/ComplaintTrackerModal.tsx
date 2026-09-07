@@ -2,6 +2,7 @@ import React from "react";
 import { Check, Clock, AlertCircle, CheckCircle2, ArrowRight, X, Train, MapPin, Calendar, Shield } from "lucide-react";
 import { Complaint, ComplaintStatus } from "../types";
 import { DEPARTMENTS, getUrgencyBadge, getStatusBadge } from "../departmentUtils";
+import { AppLogo } from "./AppLogo";
 
 interface Props {
   complaint: Complaint;
@@ -35,27 +36,27 @@ export const ComplaintTrackerModal: React.FC<Props> = ({ complaint, onClose }) =
   return (
     <div
       id="tracker-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         id="tracker-modal-card"
-        className="w-full max-w-lg card bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden"
+        className="w-full max-w-lg card bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
       >
         {/* Header */}
-        <div className="navy-bg text-white px-6 py-5 flex items-center justify-between">
+        <div className="bg-[#0A192F] text-white px-6 py-5 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🚆</span>
+            <AppLogo size="sm" />
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold">Complaint #{complaint.id}</h3>
+                <h3 className="text-lg font-extrabold text-white">Complaint #{complaint.id}</h3>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${urgency.classes}`}>
                   {urgency.label}
                 </span>
               </div>
-              <p className="text-xs text-white/70">Live Status & Railway Action Tracker</p>
+              <p className="text-xs text-slate-300">Live Status & Railway Action Tracker</p>
             </div>
           </div>
           <button

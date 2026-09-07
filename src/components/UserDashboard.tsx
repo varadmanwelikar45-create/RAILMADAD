@@ -2,6 +2,7 @@ import React from "react";
 import { FileText, Camera, Mic, Phone, Eye, Shield, LogOut, Sparkles, CheckCircle, Clock } from "lucide-react";
 import { Complaint, UserProfile } from "../types";
 import { DEPARTMENTS, getStatusBadge, getUrgencyBadge } from "../departmentUtils";
+import { AppLogo } from "./AppLogo";
 
 interface Props {
   user: UserProfile;
@@ -53,28 +54,22 @@ export const UserDashboard: React.FC<Props> = ({
     : "PS";
 
   return (
-    <div className="min-h-screen off-white navy-text flex flex-col">
-      {/* Top Nav Bar (Clean Minimalism Navy Header) */}
-      <header className="navy-bg text-white px-4 sm:px-8 py-4 sm:py-5 flex justify-between items-center shadow-sm sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">🚆</span>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">RAIL MADAD AI</h1>
-            <p className="text-xs opacity-70">Government of India • Ministry of Railways • Passenger Portal</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#F4F7FB] text-[#0B192C] flex flex-col">
+      {/* Top Nav Bar with AppLogo and Refined Colors */}
+      <header className="bg-[#0A192F] text-white px-4 sm:px-8 py-3.5 sm:py-4 flex justify-between items-center shadow-md sticky top-0 z-30 border-b border-slate-800">
+        <AppLogo size="md" showText={true} textLight={true} subtext="Passenger Portal • Indian Railways" badgeText="PASSENGER" />
 
         {/* User Info & Actions */}
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="text-right hidden sm:block mr-2">
-            <p className="text-sm font-semibold leading-tight">{user.name}</p>
-            <p className="text-xs opacity-60">
+            <p className="text-sm font-bold leading-tight text-white">{user.name}</p>
+            <p className="text-xs text-slate-400">
               {user.mobile ? `+91 ${user.mobile}` : user.email}
             </p>
           </div>
 
           <div
-            className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm text-white shadow-inner"
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-bold text-sm text-white shadow-sm ring-2 ring-white/20"
             title={user.email}
           >
             {initials}
@@ -83,7 +78,7 @@ export const UserDashboard: React.FC<Props> = ({
           <button
             id="user-logout-btn"
             onClick={onLogout}
-            className="p-2 text-white/70 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-2 text-slate-300 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
             title="Logout"
           >
             <LogOut className="w-4 h-4" />
